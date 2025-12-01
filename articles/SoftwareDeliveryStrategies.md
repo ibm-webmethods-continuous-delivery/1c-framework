@@ -10,6 +10,13 @@
 
 **The path forward requires acknowledgment of reality**: While continuous delivery should be the target, organizations must navigate their current constraints pragmatically. This article presents both the ideal fundamental strategies and the hybrid approaches that serve as transitional steps when working within technological and organizational limitations.
 
+Strategy|Description|When to Use|Notes
+-|-|-|-
+Single environment|Just install, configure and go|Normal users, consumer market. Limited endeavors like POCs, startups|The most frequent, e.g. Office on employees laptops|
+Permanent environments with staging|Traditional pre-cloud deployment|Avoid, consider this approach obsolete, Anyway, permanent environments may be required by external needs not related to software delivery per sé.|Unfortunately, this type of deployment is still very frequent in real life. There are [multiple reasons for it](./Analysis/PERMANENT_ENVIRONMENTS_ANALYSIS.md), however, organizations should upgrade their software delivery approach|
+Full Continuous Delivery|Also called "full DevOps" depending on the discussion context.|Use in any case where organizations are creating software, even in small quantities.
+Hybrid strategies|A mix of permanent and temporary environments|Large enterprises, with complex and diverse environments. Eventual intermediary step for full DevOps|Sometimes organizational impediments or software vendor constraints are impeding full adoption|
+
 - https://dora.dev/research/2024/dora-report/
 - https://dora.dev/research/2025/dora-report/
 - https://www.amazon.com/DevOps-Handbook-World-Class-Reliability-Organizations/dp/1942788002
@@ -164,7 +171,7 @@ This strategy enables true Continuous Integration and Continuous Delivery (CI/CD
 ---
 title: Permanent Production with Ephemeral Qualification
 ---
-flowchart TB
+flowchart LR
     VCS[(Version Control<br/>System<br/>Source of Truth)]
     
     subgraph CI [Continuous Integration Pipeline]
