@@ -109,10 +109,10 @@ flowchart LR
     
     PROD -->|Source of Truth<br/>for Data & Code| DEV
     
-    style PROD fill:#f96,stroke:#333,stroke-width:4px
-    style DEV fill:#9cf,stroke:#333,stroke-width:2px
-    style TEST fill:#fc9,stroke:#333,stroke-width:2px
-    style UAT fill:#9f9,stroke:#333,stroke-width:2px
+    style PROD fill:#942,stroke:#333,stroke-width:4px
+    style DEV fill:#369,stroke:#333,stroke-width:2px
+    style TEST fill:#973,stroke:#333,stroke-width:2px
+    style UAT fill:#494,stroke:#333,stroke-width:2px
 ```
 
 Production is the source of truth for both data and code aspects. Whenever a change is required, the developers must ensure they start from a production snapshot of the code.
@@ -187,11 +187,11 @@ flowchart TB
     VCS -->|Trigger| CI
     CI -->|Qualified<br/>Changes| PROD
     
-    style VCS fill:#9cf,stroke:#333,stroke-width:4px
-    style PROD fill:#f96,stroke:#333,stroke-width:4px
-    style CI fill:#9f9,stroke:#333,stroke-width:2px
-    style CREATE fill:#fc9,stroke:#333,stroke-width:1px
-    style DESTROY fill:#fc9,stroke:#333,stroke-width:1px
+    style VCS fill:#369,stroke:#333,stroke-width:4px
+    style PROD fill:#942,stroke:#333,stroke-width:4px
+    style CI fill:#494,stroke:#333,stroke-width:2px
+    style CREATE fill:#973,stroke:#333,stroke-width:1px
+    style DESTROY fill:#973,stroke:#333,stroke-width:1px
 ```
 
 Key characteristics of this strategy:
@@ -305,12 +305,12 @@ flowchart LR
     
     PROD -->|Source of Truth<br/>for Data| DEV
     
-    style PROD fill:#f96,stroke:#333,stroke-width:4px
-    style DEV fill:#9cf,stroke:#333,stroke-width:2px
-    style TEST fill:#fc9,stroke:#333,stroke-width:2px
-    style UAT fill:#9f9,stroke:#333,stroke-width:2px
-    style ORCH fill:#c9f,stroke:#333,stroke-width:3px
-    style ARTIFACTS fill:#fcc,stroke:#333,stroke-width:2px
+    style PROD fill:#942,stroke:#333,stroke-width:4px
+    style DEV fill:#369,stroke:#333,stroke-width:2px
+    style TEST fill:#973,stroke:#333,stroke-width:2px
+    style UAT fill:#494,stroke:#333,stroke-width:2px
+    style ORCH fill:#84b,stroke:#333,stroke-width:3px
+    style ARTIFACTS fill:#944,stroke:#333,stroke-width:2px
 ```
 
 Key characteristics:
@@ -407,13 +407,13 @@ flowchart TB
     PROD -->|Source of Truth<br/>for Data| DEV
     VCS -->|Source of Truth<br/>for Code| DEV
     
-    style PROD fill:#f96,stroke:#333,stroke-width:4px
-    style VCS fill:#9cf,stroke:#333,stroke-width:4px
-    style DEV fill:#9cf,stroke:#333,stroke-width:2px
-    style TEST fill:#fc9,stroke:#333,stroke-width:2px
-    style UAT fill:#9f9,stroke:#333,stroke-width:2px
-    style ORCH fill:#c9f,stroke:#333,stroke-width:3px
-    style ARTIFACTS fill:#fcc,stroke:#333,stroke-width:2px
+    style PROD fill:#942,stroke:#333,stroke-width:4px
+    style VCS fill:#369,stroke:#333,stroke-width:4px
+    style DEV fill:#369,stroke:#333,stroke-width:2px
+    style TEST fill:#973,stroke:#333,stroke-width:2px
+    style UAT fill:#494,stroke:#333,stroke-width:2px
+    style ORCH fill:#84b,stroke:#333,stroke-width:3px
+    style ARTIFACTS fill:#944,stroke:#333,stroke-width:2px
 ```
 
 Key characteristics:
