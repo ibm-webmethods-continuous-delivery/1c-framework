@@ -2,6 +2,24 @@
 
 Note: This analysis has been provided by [Bob](https://www.ibm.com/products/bob). It has been reviewed and approved by the team, as it reflects our current experience with real world customers.
 
+- [Analysis: Permanent Environments - Reasons and Risks](#analysis-permanent-environments---reasons-and-risks)
+  - [Why Companies Still Use Permanent Environments](#why-companies-still-use-permanent-environments)
+    - [1. Historical and Cultural Reasons](#1-historical-and-cultural-reasons)
+    - [2. Technical Constraints](#2-technical-constraints)
+    - [3. Organizational Structure](#3-organizational-structure)
+    - [4. Perceived Benefits](#4-perceived-benefits)
+  - [Risks of Permanent Environments](#risks-of-permanent-environments)
+    - [1. Configuration Drift and Environment Divergence](#1-configuration-drift-and-environment-divergence)
+    - [2. Merge and Integration Problems](#2-merge-and-integration-problems)
+    - [3. Resource and Cost Issues](#3-resource-and-cost-issues)
+    - [4. Testing and Quality Problems](#4-testing-and-quality-problems)
+    - [5. Delivery Speed and Agility](#5-delivery-speed-and-agility)
+    - [6. Security and Compliance Risks](#6-security-and-compliance-risks)
+    - [7. Knowledge and Skills Issues](#7-knowledge-and-skills-issues)
+    - [8. Business Impact](#8-business-impact)
+  - [Summary](#summary)
+
+
 ## Why Companies Still Use Permanent Environments
 
 ### 1. Historical and Cultural Reasons
