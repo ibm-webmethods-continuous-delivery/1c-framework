@@ -2,6 +2,20 @@
 
 This repository is reserved for the documentation of the frameworks' rules, conventions, philosophy and way of working.
 
+## Fundamental Pattern
+
+The IWCD framework implements a continuous delivery pattern centered on rapid feedback loops and relentless automation. Developers author code that flows through automated commit-time checks before entering source control. These checks provide immediate feedback, enabling early detection of issues. Upon commit, the CI process is triggered, executing on ephemeral agents to ensure clean, reproducible builds. CI provides additional feedback to developers and, upon success, triggers the CD process.
+
+The CD process publishes artifacts to the artifactory and deploys to destination environments, utilizing verification environments for testing before final deployment. Critically, the pattern embraces the "You Build It You Run It" principle: developers maintain operational responsibility for their code in destination environments. Operational feedback from these environments flows back to developers, closing the feedback loop and enabling continuous improvement.
+
+This pattern is supported by ephemeral CICD agents that provide isolation and security, while multiple feedback mechanisms (commit-time, CI-time, development-time, and operational) ensure quality at every stage. The entire flow is designed to be deterministic, automated, and secure, with no manual intervention required once code is committed.
+
+The framework explores detailed capabilities organized against this fundamental operational pattern.
+
+![Framework Overview](./diagrams/Overview.png)
+
+Objects that are subject to software delivery are always code. Data is expected to remain in the original environment, that is we are not moving data between environments by default. Data necessary for feedback cycles is synthetic or anonymized. A detailed description of the fundamental way of working is provided in the [Fundamental Delivery Process](delivery-process.md) document.
+
 ## Principles
 
 - Relentless automation
@@ -24,7 +38,7 @@ This repository is reserved for the documentation of the frameworks' rules, conv
   - secrets like passwords, API Keys and so on.
   - Any form of personal data
     - **user emails are included in this rule!** Use GitHub's email anonymizing feature and then use the GitHub user id
-- **Security by design (2 - code origin)**: All commits MUST be signed!
+- **Security by design (2 - code origin)**: All commits MUST be signed digitally and signed off!
 - **Security by design (3 - pipeline agents enforcement)**: Pipeline agents MUST ensure appropriate isolation. Do not use cloud services allowing for escape from agent mechanics.
   - **Note**: the default configuration in this framework includes as first choice Azure DevOps ephemeral VMSS based agents, where the image used in the VMSS is custom built for security enforcement and the VMSS runs in private virtual networks.
 - **Relentless automation (1 - No ClickOPS)**: Everything MUST be deterministically obtained with pipelines triggered at commit or pull request time with zero clicks! On a final production-ready delivery pipeline we pursue the objective of zero clicks, not even to set a CI pipeline parameter.
