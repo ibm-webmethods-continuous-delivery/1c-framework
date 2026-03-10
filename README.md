@@ -4,7 +4,11 @@ This repository is reserved for the documentation of the frameworks' rules, conv
 
 ## Fundamental Pattern
 
-The IWCD framework implements a continuous delivery pattern centered on rapid feedback loops and relentless automation. Developers author code that flows through automated commit-time checks before entering source control. These checks provide immediate feedback, enabling early detection of issues. Upon commit, the CI process is triggered, executing on ephemeral agents to ensure clean, reproducible builds. CI provides additional feedback to developers and, upon success, triggers the CD process.
+The IWCD framework implements a continuous delivery pattern centered on rapid feedback loops and relentless automation. This pattern serves a software implementation landscape that continuously compress delivery times, but also requires quality and security guarantees. L'advent of AI assisted or even autonomous delivery systems has further accelerated the need for a reliable, repeatable, and secure delivery pipeline, shifting ever more "leftwards" human activities. At the same time, the speed of change renders production systems less and less specifiable, requiring highly adaptable evolution.
+
+![Intent to Reality](./diagrams/intent-to-reality.png)
+
+Developers author code that flows through automated commit-time checks before entering source control. These checks provide immediate feedback, enabling early detection of issues. Upon commit, the CI process is triggered, executing on ephemeral agents to ensure clean, reproducible builds. CI provides additional feedback to developers and, upon success, triggers the CD process.
 
 The CD process publishes artifacts to the artifactory and deploys to destination environments, utilizing verification environments for testing before final deployment. Critically, the pattern embraces the "You Build It You Run It" principle: developers maintain operational responsibility for their code in destination environments. Operational feedback from these environments flows back to developers, closing the feedback loop and enabling continuous improvement.
 
