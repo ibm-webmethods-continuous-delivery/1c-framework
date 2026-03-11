@@ -6,7 +6,7 @@ This repository is reserved for the documentation of the frameworks' rules, conv
 
 The IWCD framework implements a continuous delivery pattern centered on rapid feedback loops and relentless automation. This pattern serves a software implementation landscape that continuously compress delivery times, but also requires quality and security guarantees. L'advent of AI assisted or even autonomous delivery systems has further accelerated the need for a reliable, repeatable, and secure delivery pipeline, shifting ever more "leftwards" human activities. At the same time, the speed of change renders production systems less and less specifiable, requiring highly adaptable evolution.
 
-![Intent to Reality](./diagrams/intent-to-reality.png)
+![Intent to Reality](./diagrams/01-intent-to-reality.png)
 
 Developers author code that flows through automated commit-time checks before entering source control. These checks provide immediate feedback, enabling early detection of issues. Upon commit, the CI process is triggered, executing on ephemeral agents to ensure clean, reproducible builds. CI provides additional feedback to developers and, upon success, triggers the CD process.
 
@@ -16,12 +16,42 @@ This pattern is supported by ephemeral CICD agents that provide isolation and se
 
 The framework explores detailed capabilities organized against this fundamental operational pattern.
 
-![Framework Overview](./diagrams/Overview.png)
+![Framework Overview](./diagrams/02-overview.png)
 
-Objects that are subject to software delivery are always code. Data is expected to remain in the original environment, that is we are not moving data between environments by default. Data necessary for feedback cycles is synthetic or anonymized. A detailed description of the fundamental way of working is provided in the [Fundamental Delivery Process](delivery-process.md) document.
+Artifacts that are subject to software delivery are always code. Data is expected to remain in the original environment, that is we are not moving data between environments by default. Data necessary for feedback cycles is synthetic or anonymized.
+
+At a high level, the framework distinguishes between 4 separate delivery chapters, forming a cascading process, as described in the following diagram:
+
+![Delivery chapters](./diagrams/03-pipelines-cascade.png)
+
+These chapters may be eventually combined in real use cases, the framework keeps them separated because of the different concerns, artifacts life cycles, and fundamental skills required.
+
+### 1 - Ingestion
+
+This chapter observes the download an qualification of software artifacts from suppliers, which can be vendors such as IBM, providing webMethods components, or open source libraries such as log4j that is taken from public artifactories such as [maven](https://mvnrepository.com/).
+The pipelines included here assure the integrity, quality, security and traceability of components, for example by computing software bill of materials (SBOMs) scanning for vulnerabilities and classifying the components according to risk categories.
+
+Qualified artifacts are continuously ingested and deposited in a destination artifactory to be used down the line by the next pipelines.
+
+This chapter offers a security and quality enforcement point for the software supply chain.
+
+### 2 - Prepare
+
+The second chapter offers preparation and convenient packaging tools from a technology perspective. Here, for example, the framework build database configuration container images, to be used when spinning webMethods environments; or specific microservices runtime images, having special "picking" choices from the installer.
+
+This chapter covers a pure technology perspective, managing the options at webMethods runtime level, excluding user code, which must be managed in the next chapter.
+
+### 3 - Services
+
+The services chapter covers service development with webMethods in a git-first, continuous integration manner.
+
+### 4 - Deployment
+
+The deployment chapter foresees git-ops style continuous delivery that includes IaC and similar pure delivery artifacts like Terraform modules and stacks, Cloud Formation, Kubernetes yaml files and so on.
 
 ## Principles
 
+- Intent is kept in git and drives the delivery
 - Relentless automation
 - Relentless software supply chain control
 - Git-first code
