@@ -15,6 +15,7 @@ The aspects describe the technology. The [DORA metrics](https://dora.dev/) descr
   - [Branching strategies](#branching-strategies)
   - [Ephemeral agents and environments](#ephemeral-agents-and-environments)
   - [Permanent environments and their distance](#permanent-environments-and-their-distance)
+  - [Transparent migration of state and platform upgrades](#transparent-migration-of-state-and-platform-upgrades)
   - [Outcome metrics](#outcome-metrics)
   - [Anti-patterns](#anti-patterns)
   - [Applying the aspects](#applying-the-aspects)
@@ -60,7 +61,7 @@ Actions include build, package, deploy, configure, start, stop, upgrade, rollbac
 *Are the assets text, versionable in git, diffable and mergeable?*
 
 - Share of assets stored as text. A binary or opaque asset blocks diff and merge.
-- Direction of flow: assets are authored in git and flow to the system, not authored in the system and exported to git (yes/no). See [Git as a mirror of a SaaS tenant](#git-as-a-mirror-of-a-saas-tenant).
+- Direction of flow: assets are authored in an editor directly coupled to git and flow to the system, not authored in the system and exported to git (yes/no). See [Git as a mirror of a SaaS tenant](#git-as-a-mirror-of-a-saas-tenant).
 - Each asset can be authored and reviewed on its own, without regenerating a bundle (yes/no).
 - Reproducibility: the same commit yields an equivalent artifact.
 - Merge-conflict rate on shared assets.
@@ -91,7 +92,7 @@ Actions include build, package, deploy, configure, start, stop, upgrade, rollbac
 - Support for rolling, blue/green or canary releases. This requires that old and new versions can run side by side, with backward-compatible schemas, APIs and messages.
 - Rollback or roll-forward time.
 - Deploy decoupled from release, for example with feature toggles.
-- State handling: stateless runtime, or state migrated by automated, versioned scripts.
+- State handling: stateless runtime, or state migrated transparently (see aspect 13).
 
 ### 7. Modularity
 
@@ -147,7 +148,22 @@ Actions include build, package, deploy, configure, start, stop, upgrade, rollbac
 - A run is reproducible from the commit id alone.
 - The outcome (logs, reports, test results) is retrievable after the environment is gone.
 
-Aspects 11 and 12 are discussed further in the sections below.
+### 13. Transparent migration of state and platform upgrades
+
+*Can the software, its data stores and its configuration move to a new version, whether the change is the customer's own or the platform's, without a migration project?*
+
+- Effort and elapsed time of an upgrade, compared with the effort of an ordinary release (target: the same order of magnitude, no dedicated project).
+- Share of schema, data and state changes applied by versioned, automated migrations (target: 100%).
+- Migrations are rehearsed in the pipeline, in an ephemeral environment, against representative synthetic or anonymized data (yes/no).
+- Compatibility window: version N-1 of the code runs against the state of version N, so that old and new can run side by side (yes/no).
+- Downtime during migration, and whether its duration grows with data volume.
+- Reversibility: a failed migration can be rolled back or restored within a known time (yes/no).
+- Versions that can be skipped in one upgrade, and number of versions the oldest production environment is behind.
+- Customer assets that need a change or break per platform upgrade (target: 0), and whether the breakage is detected before it reaches production (yes/no).
+- Control over platform upgrades: the customer can preview, pin or defer an upgrade, or at least test against the upcoming version (yes/no), and is notified in a machine-readable way (yes/no).
+- Compatibility commitment: versioned APIs and assets, a deprecation notice period, and a documented list of breaking changes per release.
+
+Aspects 11, 12 and 13 are discussed further in the sections below.
 
 ## Rating scale
 
@@ -225,6 +241,65 @@ Ephemeral environments are the preferred default, but some setups keep permanent
 
    Also record who or what moves the pointer (pipeline, approval gate, person) and whether hotfixes made in one environment are guaranteed to flow back to trunk.
 
+## Transparent migration of state and platform upgrades
+
+Continuous delivery means frequent change. Frequent change is only affordable when each change, including the ones that touch state, costs next to nothing. A data store whose evolution needs a project puts a ceiling on how often the software can change.
+
+### Two directions of change
+
+Change reaches a running system from two directions, and both have to be transparent:
+
+1. **Own change.** The customer's code or configuration evolves and needs a new schema, new data shape or new state (a new column, a renamed field, a new message format, a new configuration structure).
+2. **Platform change.** The software underneath evolves. For installed products this is a new product version, installed by the customer, with its own database schemas and runtime state to migrate. For SaaS this is the vendor's cloud operations upgrading the code behind the service, on the vendor's schedule and often without a customer-visible version.
+
+For installed products the customer controls the timing but pays the migration cost. For SaaS the vendor absorbs the migration of the platform's own data, but the customer's code and configuration run on top of a platform that changes under them. "Transparent for the vendor" is not the same as "transparent for the customer": when an upgrade breaks customer assets, the migration cost has simply moved to the customer, at a time the customer did not choose.
+
+### The vicious circle of the migration project
+
+If an upgrade is a project, it is postponed. The longer it is postponed, the more versions are crossed at once, the larger the batch, the riskier and costlier the project, and the stronger the reason to postpone again. Eventually the product runs out of vendor support, or a security fix forces an emergency migration. This is the opposite of the small batch sizes that continuous delivery relies on. Small, frequent, automated changes are safer than rare big ones, and "if it hurts, do it more often" applies to migrations as much as to deployments.
+
+### A pipeline triggered by the platform, not only by a commit
+
+Normally a pipeline runs when someone commits. When the platform changes by itself, as in SaaS, nothing is committed and nothing runs, yet the behavior of the system may have changed. Readiness therefore also means a **customer-side regression pipeline that runs on a schedule and on vendor release signals**, against a non-production tenant that receives vendor upgrades first (a preview or early-access ring, where the vendor offers one), so that breakage is found before production receives the upgrade. This needs:
+
+- an automated test suite that covers the customer's assets (aspect 5);
+- a sandbox tenant or environment created from code (aspect 12);
+- a vendor commitment that gives advance notice or an early ring, which is itself an indicator under this aspect.
+
+If the vendor offers none of these, the residual risk should be stated in the rating, and monitoring and fast rollback or roll-forward (aspects 6 and 8) become the only defense.
+
+### Techniques for transparent migration of state
+
+- **Versioned, automated migrations** kept as code next to the software, applied by the pipeline or at start-up, in a fixed order, recording what has been applied.
+- **Expand and contract (parallel change).** First add the new structure alongside the old one (expand), deploy code that works with both, migrate data in the background, then remove the old structure (contract) in a later release. Each step is backward compatible and can be rolled back. Deploy and migrate become separate, independently reversible events.
+- **Compatibility window.** Version N-1 and version N run against the same state at the same time. This enables rolling, blue/green and canary releases (aspect 6).
+- **Online and incremental migration.** Data is converted in small batches or on access, with no downtime that grows with data volume.
+- **Rehearsal.** Every migration runs in an ephemeral environment against a restored, anonymized or synthetic copy of production-shaped data before it runs for real. In line with the framework, production data is not moved between environments; the rehearsal uses data generated or anonymized for feedback cycles, and the real migration runs in place.
+- **State reduction.** The less state the software owns, the less there is to migrate. Prefer stateless runtimes, state in managed stores with their own upgrade path, and state that can be rebuilt from code or from an event log.
+- **Stable contracts to the outside.** Versioned APIs, message formats and asset formats let both sides evolve independently.
+
+### Maturity levels
+
+| Level | Description | Typical sign |
+|---|---|---|
+| 0 | Migration is a manual project | Plan, budget, freeze, weekend, specialists |
+| 1 | Migration is scripted but run by hand, in an outage window | Runbook and scripts, one person who knows |
+| 2 | Migration is automated and rehearsed in the pipeline, with a downtime window | The same script ran in many ephemeral environments before production |
+| 3 | Migration is online and backward compatible (expand and contract) | Upgrades are ordinary releases, with no outage |
+| 4 | Platform upgrades are continuous and transparent, with a compatibility contract, an early ring, and a customer-side regression pipeline | Customer finds breakage in the preview ring, not in production |
+
+Levels are a reading aid. A subject is rated against the indicators of aspect 13, and the level summarizes the result.
+
+### Questions to ask
+
+- What happened in the last upgrade? How many people, how many weeks, and how much of it was waiting, testing or fixing?
+- How many versions behind is the oldest production environment, and why?
+- Can the migration run unattended in a throwaway environment, with data of production shape and size? How long does it take, and does it grow with volume?
+- Can version N-1 and N coexist on the same state?
+- If the migration fails halfway, what is the way back, and how long does it take?
+- Who decides when the platform changes? Can the customer test on the new version first?
+- Which customer assets broke in the last platform upgrade, and who found out first, the tests or the users?
+
 ## Outcome metrics
 
 The aspects above are properties of the technology. Whether continuous delivery works in practice is measured by the DORA metrics:
@@ -239,9 +314,9 @@ Rough correspondence between aspects and outcomes:
 | Outcome | Aspects that influence it most |
 |---|---|
 | Deployment frequency | 1 Automatability, 9 Pipeline friendliness, 11 Branchability, 12 Ephemeral environments |
-| Lead time for changes | 1, 5 Testability, 9, 11, 12 |
-| Change failure rate | 4 Repeatability, 5 Testability, 6 Deployability, 7 Modularity |
-| Time to restore service | 6 Deployability, 8 Observability, 4 Repeatability |
+| Lead time for changes | 1, 5 Testability, 9, 11, 12, 13 Migration |
+| Change failure rate | 4 Repeatability, 5 Testability, 6 Deployability, 7 Modularity, 13 Migration |
+| Time to restore service | 6 Deployability, 8 Observability, 4 Repeatability, 13 Migration (reversibility) |
 
 The correspondence is a guide for where to look when an outcome is poor, not a formula.
 
@@ -310,6 +385,38 @@ If the answer to any of these is no, git is a backup or audit copy and not the s
 
 **Rating.** A subject whose artifact embeds environment-specific identifiers with no automatable mitigation is rated **None** for the "same artifact promoted" indicator of aspect 2. With mitigation 3 or 4 in place it is **Partial**, with the mapping noted as the workaround. With mitigation 1 or 2 it can be **Full**.
 
+### Migration as a project
+
+**Description.** Moving to a new version of the product, or to a new data structure, is planned, budgeted and staffed as a project with specialists, a freeze period and an outage window. Typical for installed products with their own databases and many customizations. Often the customer's assets are reworked, retested and revalidated by hand for each version.
+
+**Why it is an anti-pattern.** It makes the cost of change high and lumpy, so change is postponed and batches grow (see [the vicious circle](#the-vicious-circle-of-the-migration-project)). Knowledge sits in a few people. The migration is rehearsed rarely, so it is risky. It prevents the daily delivery cadence for everything that touches the migrated state, and it leaves the organization on unsupported versions for long periods.
+
+**Related forms.**
+
+- **Version freeze:** the product stays on an old version because nobody can afford the migration, and security fixes become emergencies.
+- **Big-bang upgrade:** many versions crossed at once, with no intermediate steps, and a go-live that must succeed on the first attempt.
+- **Migration tested only on an empty or tiny database:** the first real test is production, and duration and locking problems appear with the real volume.
+- **Irreversible migration:** no tested way back, so the only option on failure is to push forward under pressure.
+- **Migration coupled to the code release without a compatibility window:** the new code cannot run on the old state and vice versa, so there is no rolling release and no quick rollback.
+- **Customizing the vendor's internals:** changes to vendor-managed assets or schemas that the next upgrade overwrites or conflicts with, so each upgrade begins with a merge of customizations.
+
+**Better:** automated, versioned, rehearsed migrations; expand and contract; keeping customer assets outside vendor-managed areas and referring to the product through supported, versioned interfaces.
+
+### Surprise platform upgrades
+
+**Description.** The vendor's cloud operations upgrade the code behind a SaaS service on their own schedule. Customer code or configuration that worked yesterday breaks today, and nobody on the customer side was told, nor could they test beforehand.
+
+**Why it is an anti-pattern.** The change reaches production without passing through the customer's pipeline. The customer's delivery process is bypassed, so every quality gate is skipped. Lead time and change failure rate depend on an actor the customer does not control. Time to restore depends on the vendor's support and on whether the customer can pin or roll back, which is often not possible.
+
+**Contributing factors.**
+
+- No early ring, preview tenant or advance notice.
+- No compatibility contract: undocumented breaking changes, or no deprecation period.
+- Customer assets that depend on undocumented behavior, internal identifiers (see [Environment-specific identifiers inside the code](#environment-specific-identifiers-inside-the-code)) or UI-generated structures.
+- No customer-side regression suite, so users are the detectors.
+
+**Better:** a vendor that offers a preview ring, notice and a compatibility commitment; a customer who runs a scheduled regression pipeline against a preview tenant created from code, relies only on documented behavior, and watches production with synthetic checks (aspect 8). Where the vendor offers none of these, record the residual risk in the rating.
+
 ### Other negative examples
 
 | Anti-pattern | What it looks like | Aspects it undermines |
@@ -322,6 +429,8 @@ If the answer to any of these is no, git is a backup or audit copy and not the s
 | Secrets in the repository or in the artifact | Passwords or keys committed, or inside an exported configuration | 2 Configurability, 10 Security and compliance |
 | Manual gate disguised as automation | Pipeline waits for a person to execute a step in a UI, then to click "continue" | 1 Automatability, 9 Pipeline friendliness |
 | Identifiers that differ per environment inside the artifact | GUIDs or IDs of connections, groups or referenced objects embedded in the code, rewritten on each deployment | 2 Configurability, 4 Repeatability, 12 Ephemeral environments |
+| Upgrade or schema change run as a project | Dedicated team, freeze, outage window, hand-run scripts, rare and risky | 13 Migration, 6 Deployability, 4 Repeatability |
+| Vendor upgrades arrive unannounced and untestable | SaaS code changes under the customer's assets with no preview ring, notice or compatibility commitment | 13 Migration, 5 Testability, 8 Observability |
 | Opaque promotion by copy | Content copied from one environment to the next through the product's own export/import feature, without an artifact in between | 3 Source-based assets, 4 Repeatability, 10 Security and compliance |
 
 ## Applying the aspects
